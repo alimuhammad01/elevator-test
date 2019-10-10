@@ -18,6 +18,7 @@ function initApp() {
       })
     }
     renderFloors(floors)
+    console.log('elevators - ', elevators)
     renderElevators(elevators)
   }
   else {
@@ -32,9 +33,8 @@ function initApp() {
 function renderElevators(elevators) {
   for (let i=1; i<=elevators.length; i++) {
     $('#elevators').append(`<ul id="elevator-${i}" class="elevator borders"></ul>`)
-
     for (let f=1; f<=floors; f++) {
-      $('#elevator-'+i).append(`<li class="${elevators[i].onFloor === f ? 'active' : 'not-active' }">${f === 1 ? i : `&nbsp`}</li>`)
+      $('#elevator-'+i).append(`<li class="${elevators[i-1].onFloor === f ? 'active' : 'not-active' }">${f === 1 ? i : `&nbsp`}</li>`)
     }
   }
 }
@@ -46,17 +46,46 @@ function renderFloors(floors) {
   for (let i=1; i<=floors; i++) {
     $('#floors').append(`<li>
                   ${i}
-                  <button onclick="moveUp(${i-1})">Up</button>
-                  <button onclick="moveDown(${i-1})">Down</button>
+                  <button onclick="moveUp(${i})">Up</button>
+                  <button onclick="moveDown(${i})">Down</button>
                 </li>`)
   }
 }
 
 
-function moveUp(elevatorIndex) {
-  console.log('moveUp - elevatorIndex - ', floors)
+function moveUp(floorIndex) {
+  let elevator = prioritizeElevator(floorIndex);
+  if(!elevator) {
+    alert('Elevator already present!')
+  }
+  console.log('moveUp - floorIndex - ', floorIndex)
 }
 
-function moveDown(elevatorIndex) {
-  console.log('moveDown - elevatorIndex - ', elevators)
+function moveDown(floorIndex) {
+  let elevator = prioritizeElevator(floorIndex);
+  if(!elevator) {
+    alert('Elevator already present!')
+  }
+  console.log('moveDown - floorIndex - ', floorIndex)
+}
+
+
+/*
+ * Defining Rules for prioritizing Elevator's Selection.
+ * 1: It should be CLOSEST one to the the called floor
+ * 2: If elevator is already present on the same Floor it is called from show ALERT
+ */
+function prioritizeElevator(floor) {
+  let closest = {floor: Infinity, key: 0}, stepsAway, elevator;
+  for(let index = 0; index < elevators.length; index++) {
+    elevator = elevators[index];
+    if(elevator.onFloor === floor) {
+      return false
+    }
+    stepsAway = elevator.onFloor - floor
+    if(Math.abs(stepsAway) < closest.floor) {
+      closest = {key: index, floor: elevator.onFloor}
+    }
+  }
+  return closest;
 }
