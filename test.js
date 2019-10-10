@@ -1,6 +1,9 @@
 let floors = 0;
 let elevators = [];
 
+//TODO: A better way was to write tests(Unit + E2E) for tests it but time is short so ;-)
+//TODO: Had to add lints.
+
 /*
  * Initialises App with no of Floors and Elevators
  */
@@ -18,7 +21,6 @@ function initApp() {
       })
     }
     renderFloors(floors)
-    console.log('elevators - ', elevators)
     renderElevators(elevators)
   }
   else {
@@ -26,15 +28,14 @@ function initApp() {
   }
 }
 /*
-* Renders No of Elevators,
-* this func will be used every time when elevators will be rendered
-* By Render i mean, wheneven a state of elevator is changed byt the Up || Down button's press
+* Renders No of Elevators
  */
-function renderElevators(elevators) {
+function renderElevators() {
+  $('#elevators').empty()
   for (let i=1; i<=elevators.length; i++) {
     $('#elevators').append(`<ul id="elevator-${i}" class="elevator borders"></ul>`)
     for (let f=1; f<=floors; f++) {
-      $('#elevator-'+i).append(`<li class="${elevators[i-1].onFloor === f ? 'active' : 'not-active' }">${f === 1 ? i : `&nbsp`}</li>`)
+      $('#elevator-'+i).append(`<li id="elevator-floor-${i}" class="${elevators[i-1].onFloor === f ? 'active' : 'not-active' }">${f === 1 ? elevators[i-1].movingTo ? elevators[i-1].movingTo : i : `&nbsp`}</li>`)
     }
   }
 }
@@ -58,7 +59,26 @@ function moveUp(floorIndex) {
   if(!elevator) {
     alert('Elevator already present!')
   }
-  console.log('moveUp - floorIndex - ', floorIndex)
+  else {
+    // TODO: Need to put this in separate func so can be reused easily.
+    let {key, floor} = elevator;
+    console.log('current = ', elevator)
+    elevators[key].moving = true
+    if(floorIndex > floor) {
+      elevators[key].movingTo = 'UP'
+    }
+    else {
+      elevators[key].movingTo = 'DOWN'
+    }
+    renderElevators()
+    setTimeout(function () {
+      elevators[key].movingTo = ""
+      elevators[key].onFloor = floorIndex
+      elevators[key].moving = false
+      elevators[key].open = true
+      renderElevators()
+    }, 1000*(key+1))
+  }
 }
 
 function moveDown(floorIndex) {
@@ -66,14 +86,34 @@ function moveDown(floorIndex) {
   if(!elevator) {
     alert('Elevator already present!')
   }
-  console.log('moveDown - floorIndex - ', floorIndex)
+  else {
+    // TODO: Need to put this in separate func so can be reused easily.
+    let {key, floor} = elevator;
+    console.log('current = ', elevator)
+    elevators[key].moving = true
+    if(floorIndex > floor) {
+      elevators[key].movingTo = 'UP'
+    }
+    else {
+      elevators[key].movingTo = 'DOWN'
+    }
+    renderElevators()
+    setTimeout(function () {
+      elevators[key].movingTo = ""
+      elevators[key].onFloor = floorIndex
+      elevators[key].moving = false
+      elevators[key].open = true
+      renderElevators()
+    }, 1000*(key+1))
+  }
 }
-
 
 /*
  * Defining Rules for prioritizing Elevator's Selection.
  * 1: It should be CLOSEST one to the the called floor
  * 2: If elevator is already present on the same Floor it is called from show ALERT
+ * 3: Moving lift to ordered floor
+ * 4: Added Moving status
  */
 function prioritizeElevator(floor) {
   let closest = {floor: Infinity, key: 0}, stepsAway, elevator;
